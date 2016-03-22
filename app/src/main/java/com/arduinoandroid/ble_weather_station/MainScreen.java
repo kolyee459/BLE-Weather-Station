@@ -126,9 +126,6 @@ public class MainScreen extends Activity {
                 // Connect to the device.
                 // Control flow will now go to the callback functions when BTLE events occur.
                 gatt = bluetoothDevice.connectGatt(getApplicationContext(), false, callback);
-                //gatt.setCharacteristicNotification(rx,true);
-                //gatt.setCharacteristicNotification(tx,true);
-
 
             }
         }
