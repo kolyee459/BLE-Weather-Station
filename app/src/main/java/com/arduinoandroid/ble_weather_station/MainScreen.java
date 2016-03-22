@@ -17,11 +17,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 
 public class MainScreen extends Activity {
+
 
     private final String LOG_TAG = MainScreen.class.getSimpleName();
 
@@ -44,6 +46,7 @@ public class MainScreen extends Activity {
 
     // BTLE state
     private BluetoothAdapter adapter;
+    private BluetoothDevice device;
     private BluetoothGatt gatt;
     private BluetoothGattCharacteristic tx;
     private BluetoothGattCharacteristic rx;
@@ -87,7 +90,7 @@ public class MainScreen extends Activity {
 
             // Setup notifications on RX characteristic changes (i.e. data received).
             // First call setCharacteristicNotification to enable notification.
-            if (!gatt.setCharacteristicNotification(rx, true)) {
+            /*if (!gatt.setCharacteristicNotification(rx, true)) {
                 writeLine("Couldn't set notifications for RX characteristic!");
             }
 
@@ -101,7 +104,9 @@ public class MainScreen extends Activity {
             }
             else {
                 writeLine("Couldn't get RX client descriptor!");
-            }
+            }*/
+
+            setCharacteristicNotification(device,UART_UUID,RX_UUID,true);
         }
 
         // Called when a remote characteristic changes (like the RX characteristic).
@@ -126,6 +131,7 @@ public class MainScreen extends Activity {
                 // Connect to the device.
                 // Control flow will now go to the callback functions when BTLE events occur.
                 gatt = bluetoothDevice.connectGatt(getApplicationContext(), false, callback);
+                device = bluetoothDevice;
 
             }
         }
@@ -339,5 +345,20 @@ public class MainScreen extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }*/
+
+    private static final boolean IS_DEBUG = true ;
+    protected static final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+    public boolean setCharacteristicNotification(BluetoothDevice device, UUID serviceUuid, UUID characteristicUuid,
+                                                 boolean enable) {
+        if (IS_DEBUG)
+            Log.d(LOG_TAG, "setCharacteristicNotification(device=" + device.getName() + device.getAddress() + ", UUID="
+                    + characteristicUuid + ", enable=" + enable + " )");
+       // BluetoothGatt gatt =gatt.get(device.getAddress()); //I just hold the gatt instances I got from connect in this HashMap
+        BluetoothGattCharacteristic characteristic = gatt.getService(serviceUuid).getCharacteristic(characteristicUuid);
+        gatt.setCharacteristicNotification(characteristic, enable);
+        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_UUID);
+        descriptor.setValue(enable ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : new byte[] { 0x00, 0x00 });
+        return gatt.writeDescriptor(descriptor); //descriptor write operation successfully started?
+    }
 
 }
