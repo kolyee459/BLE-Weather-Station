@@ -107,6 +107,7 @@ public class MainScreen extends Activity {
             }*/
 
             setCharacteristicNotification(device,UART_UUID,RX_UUID,true);
+           // setCharacteristicNotification(device,UART_UUID,TX_UUID,false);
         }
 
         // Called when a remote characteristic changes (like the RX characteristic).
